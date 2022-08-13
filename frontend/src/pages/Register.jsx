@@ -1,19 +1,57 @@
-import React, {useState} from 'react'
-import { FaSignInAlt, FaSignOutAlt, FaUser } from "react-icons/fa";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { register, reset } from "../features/auth/authSlice";
+import { FaUser } from "react-icons/fa";
+import Spinner from "../components/Spinner";
 
 const Register = () => {
-    const [formData, setFormData] = useState({
-        name: "",
-        email: "",
-        password: "",
-        password2: "",
-    })
-    const { name, email, password, password2 } = formData;
-    const onChange = e => setFormData((prevState) => ({ ...prevState, [e.target.name]: e.target.value }))
-    console.log(formData)
-    const onSubmit = e => {
-        e.preventDefault();
-    } 
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    password2: "",
+  });
+  const { name, email, password, password2 } = formData;
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { user, isLoading, isError, isSuccess, message } = useSelector(
+    (state) => state.auth
+  );
+  useEffect(() => {
+    if (isError) {
+      toast.error(message);
+    }
+    if (isSuccess) {
+      navigate("/");
+    }
+    dispatch(reset());
+  }, [user, isError, isSuccess, message, navigate, dispatch]);
+
+  const onChange = (e) =>
+    setFormData((prevState) => ({
+      ...prevState,
+      [e.target.name]: e.target.value,
+    }));
+  console.log(formData);
+
+  const onSubmit = (e) => {
+    e.preventDefault();
+    if (password !== password2) {
+      toast.error("passwords do not match");
+    } else {
+      const userData = {
+        name,
+        email,
+        password,
+      };
+      dispatch(register(userData));
+    }
+  };
+  if (isLoading) {
+    return <Spinner />;
+  }
   return (
     <>
       <section className="heading">
@@ -78,6 +116,6 @@ const Register = () => {
       </section>
     </>
   );
-}
+};
 
-export default Register
+export default Register;
